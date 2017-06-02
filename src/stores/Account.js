@@ -20,6 +20,7 @@ class Store {
   @persist('object', Models.Account) @observable current = new Models.Account
   @persist @observable isAuthenticated = false;
   @observable isConnecting = false;
+  @observable users = [];
 
   constructor() {
     const options = { transports: ['websocket'], pingTimeout: 3000, pingInterval: 5000 };
@@ -124,7 +125,7 @@ class Store {
     });
   }
 
-  promptForLogout() {
+  promptForLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?',
       [
         {
@@ -136,26 +137,16 @@ class Store {
     );
   }
 
-  // @action login = (username: string, password: string) => {
-  //   return new Promise((resolve, reject) => {
-  //     if (username && password) {
-  //       this.isAuthenticated = true;
-  //       this.current = { username, password };
-  //       resolve({ message: 'success' });
-  //     } else {
-  //       reject({ message: 'Something is wrong with input data :(' });
-  //     }
-  //   });
-  // }
-  //
-  // @action logout = () => {
-  //   return new Promise((resolve, reject) => {
-  //     this.isAuthenticated = false;
-  //     this.current = {};
-  //
-  //     resolve();
-  //   });
-  // }
+  loadUsers = () => {
+    return this.app.service('users').find()
+      .then((response) => {
+        this.users = response.data;
+      })
+      .catch((error) => {
+        alert('loadUsers -> ', error);
+      })
+  }
+
 }
 
 export default new Store();

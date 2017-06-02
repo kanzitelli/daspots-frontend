@@ -34,6 +34,12 @@ export default class ProfileScreen extends Component {
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
   }
 
+  componentDidMount() {
+    const { Account } = this.props;
+
+    Account.loadUsers();
+  }
+
   onNavigatorEvent = (event: { id: string }) => {
     switch (event.id) {
       case 'edit':
@@ -70,6 +76,7 @@ export default class ProfileScreen extends Component {
               </Text>
             </TouchableOpacity>
           </View>
+
           <TableView>
             <Section>
               <Cell
@@ -89,6 +96,7 @@ export default class ProfileScreen extends Component {
                 titleTextColor={Constants.Colors.redColor}
               />
             </Section>
+
             <Section header="All profiles">
               <Cell
                 cellStyle="Basic"
@@ -96,6 +104,23 @@ export default class ProfileScreen extends Component {
                 onPress={() => alert('+ Add new profile')}
                 titleTextColor={Constants.Colors.tableButtonActionColor}
               />
+              {
+                Account.users
+                  .filter(user => user.id != Account.current.id)
+                  .map((user) => {
+                    return (
+                      <Cell
+                        key={`${user.id}-${user.email}`}
+                        cellStyle="Basic"
+                        title={`${user.first_name} ${user.last_name}`}
+                        onPress={() => alert('FUTURE FEATURE: Go to pressed account')}
+                        image={
+                          <Image style={{ borderRadius: 15 }} source={{ uri: (user.avatar || 'https://facebook.github.io/react/img/logo_og.png') }} />
+                        }
+                      />
+                    )
+                  })
+              }
             </Section>
           </TableView>
         </ScrollView>
