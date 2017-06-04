@@ -21,6 +21,7 @@ type State = {
   password   : string,
   first_name : string,
   last_name  : string,
+  bio        : string,
 }
 
 @inject('App', 'Account') @observer
@@ -36,6 +37,7 @@ export default class SignupScreen extends Component {
     this.state = {
       first_name : '',
       last_name  : '',
+      bio        : '',
       email      : '',
       password   : '',
     }
@@ -43,11 +45,11 @@ export default class SignupScreen extends Component {
 
   signUp = () => {
     const { Account } = this.props;
-    const { first_name, last_name, email, password } = this.state;
+    const { first_name, last_name, bio, email, password } = this.state;
 
     // simple condition for now
     if (first_name && last_name && email && password) {
-      Account.createAccount(first_name, last_name, email, password)
+      Account.createAccount(first_name, last_name, bio, email, password)
         .then(() => {
           Constants.Navigation.startMainApp();
         }, (error) => {
@@ -80,6 +82,12 @@ export default class SignupScreen extends Component {
             onChangeText={ (last_name) => this.setState({ last_name }) }
             value={ this.state.last_name }
             placeholder={`Last name`}
+          />
+
+          <Components.DaTextInput
+            onChangeText={ (bio) => this.setState({ bio }) }
+            value={ this.state.bio }
+            placeholder={`Bio`}
           />
 
           <Components.DaTextInput

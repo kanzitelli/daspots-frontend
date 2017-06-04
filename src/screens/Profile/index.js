@@ -44,7 +44,6 @@ export default class ProfileScreen extends Component {
   onNavigatorEvent = (event: { id: string }) => {
     switch (event.id) {
       case 'edit':
-        alert('Edit button pressed');
         this.openCreateEditAccountScreenWith('edit');
         break;
       default:
@@ -56,7 +55,7 @@ export default class ProfileScreen extends Component {
 
     navigator.showModal({
       ...Constants.Screens.CREATE_EDIT_ACCOUNT_SCREEN,
-      title: `${mode.toUpperCase()} account`,
+      title: `${mode} account`,
       passProps: { mode },
     })
   }

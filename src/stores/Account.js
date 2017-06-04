@@ -68,11 +68,18 @@ class Store {
     });
   }
 
-  createAccount = (first_name: string, last_name: string, email: string, password: string, withUserAuth?: boolean = true) => {
-    const userData = { first_name, last_name, email, password };
+  createAccount = (first_name: string, last_name: string, bio: string, email: string, password: string, withUserAuth?: boolean = true) => {
+    const userData = { first_name, last_name, bio, email, password };
 
     return this.app.service('users').create(userData).then((result) => {
       if (withUserAuth) return this.authenticate(Object.assign(userData, { strategy: 'local' }))
+    });
+  }
+
+  updateAccountInfo = (id: number, first_name: string, last_name: string, bio: string, email: string) => {
+    const userData = { first_name, last_name, bio, email };
+    return this.app.service('users').update(id, userData).then((newUser) => {
+      this.current = newUser;
     });
   }
 

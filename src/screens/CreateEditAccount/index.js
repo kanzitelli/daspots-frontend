@@ -22,6 +22,7 @@ type State = {
   password   : string,
   first_name : string,
   last_name  : string,
+  bio        : string,
 }
 
 type Props = {
@@ -38,11 +39,14 @@ export default class CreateEditAccountScreen extends Component {
   constructor(props: Props) {
     super(props);
 
+    const { Account, mode } = props;
+
     this.state = {
-      first_name : '',
-      last_name  : '',
-      email      : '',
-      password   : '',
+      first_name : mode === 'create' ? '' : Account.current.first_name,
+      last_name  : mode === 'create' ? '' : Account.current.last_name,
+      bio        : mode === 'create' ? '' : Account.current.bio,
+      email      : mode === 'create' ? '' : Account.current.email,
+      password   : mode === 'create' ? '' : 'will_be_hidden ',
     }
 
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
@@ -61,27 +65,44 @@ export default class CreateEditAccountScreen extends Component {
 
   handleCreateEditAction = () => {
     const { Account, navigator, mode } = this.props;
-    const { first_name, last_name, email, password } = this.state;
+    const { first_name, last_name, bio, email, password } = this.state;
 
     // simple condition for now
     if (first_name && last_name && email && password) {
-      Account.createAccount(first_name, last_name, email, password, false)
-        .then(() => {
-          Alert.alert(
-            'New account',
-            `'${email}' was created successfully`,
-            [
-              {text: 'Great!', onPress: () => navigator.dismissModal()},
-            ],
-            { cancelable: false }
-          )
 
-        }, (error) => {
-          alert(error.message);
-        })
+      if (mode === 'create') {
+        Account.createAccount(first_name, last_name, email, password, false)
+          .then(() => {
+            this.closeModalWithSuccessfulAlert();
+          }, (error) => {
+            alert(error.message);
+          })
+      } else {
+        Account.updateAccountInfo(Account.current.id, first_name, last_name, bio, email, password, false)
+          .then(() => {
+            this.closeModalWithSuccessfulAlert();
+          }, (error) => {
+            alert(error.message);
+          })
+      }
+
     } else {
       alert('Something wrong with input data :(');
     }
+  }
+
+  closeModalWithSuccessfulAlert = () => {
+    const { Account, navigator, mode } = this.props;
+    const { first_name, last_name, bio, email, password } = this.state;
+
+    Alert.alert(
+      mode === 'create' ? 'New account' : 'Edit account',
+      mode === 'create' ? `'${email}' was created successfully` : 'changes were successfully changed',
+      [
+        {text: 'Great!', onPress: () => navigator.dismissModal()},
+      ],
+      { cancelable: false }
+    );
   }
 
   changePasswordPressed = () => {
@@ -110,6 +131,12 @@ export default class CreateEditAccountScreen extends Component {
             onChangeText={ (last_name) => this.setState({ last_name }) }
             value={ this.state.last_name }
             placeholder={`Last name`}
+          />
+
+          <Components.DaTextInput
+            onChangeText={ (bio) => this.setState({ bio }) }
+            value={ this.state.bio }
+            placeholder={`Bio`}
           />
 
           <Components.DaTextInput
