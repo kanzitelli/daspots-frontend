@@ -1,7 +1,7 @@
 // @flow
 
 import { Alert, AsyncStorage } from 'react-native';
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed, runInAction } from 'mobx';
 import { persist } from 'mobx-persist';
 import { autobind } from 'core-decorators';
 import io from 'socket.io-client';
@@ -59,16 +59,20 @@ class Store {
     //   this.messages.unshift(this.formatMessage(createdMessage));
     // });
 
-    // this.app.service('messages').on('removed', removedMessage => {
-    //   this.deleteMessage(removedMessage);
-    // });
+    this.app.service('users').on('created', createdUser => {
+      runInAction('users created on', () => {
+        const newUsers = this.users;
+        newUsers.push(createdUser);
+        this.users = newUsers;
+      })
+    });
   }
 
-  createAccount = (first_name: string, last_name: string, email: string, password: string) => {
+  createAccount = (first_name: string, last_name: string, email: string, password: string, withUserAuth?: boolean = true) => {
     const userData = { first_name, last_name, email, password };
 
     return this.app.service('users').create(userData).then((result) => {
-      return this.authenticate(Object.assign(userData, { strategy: 'local' }))
+      if (withUserAuth) return this.authenticate(Object.assign(userData, { strategy: 'local' }))
     });
   }
 

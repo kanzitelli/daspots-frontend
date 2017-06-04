@@ -24,4 +24,8 @@ export default {
     screen : 'app.ProfileScreen',
     title  : 'Profile',
   },
+  CREATE_EDIT_ACCOUNT_SCREEN: {
+    screen : 'app.CreateEditAccountScreen',
+    // title: 'depends on Edit or Create mode'
+  }
 }

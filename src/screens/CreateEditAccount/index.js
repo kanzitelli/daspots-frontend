@@ -7,6 +7,7 @@ import {
   Button,
   TextInput,
   StyleSheet,
+  Alert,
   KeyboardAvoidingView,
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
@@ -23,14 +24,18 @@ type State = {
   last_name  : string,
 }
 
+type Props = {
+  mode: string,
+}
+
 @inject('App', 'Account') @observer
-export default class SignupScreen extends Component {
-  // static navigatorButtons = NavButtons.Login;
+export default class CreateEditAccountScreen extends Component {
+  static navigatorButtons = NavButtons.CreateEditAccount;
   static navigatorStyle   = NavBar.Default;
 
   state: State;
 
-  constructor(props: {}) {
+  constructor(props: Props) {
     super(props);
 
     this.state = {
@@ -39,17 +44,38 @@ export default class SignupScreen extends Component {
       email      : '',
       password   : '',
     }
+
+    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
   }
 
-  signUp = () => {
-    const { Account } = this.props;
+  onNavigatorEvent = (event: { id: string }) => {
+    const { navigator } = this.props;
+
+    switch (event.id) {
+      case 'cancel':
+        navigator.dismissModal();
+        break;
+      default:
+    }
+  }
+
+  handleCreateEditAction = () => {
+    const { Account, navigator, mode } = this.props;
     const { first_name, last_name, email, password } = this.state;
 
     // simple condition for now
     if (first_name && last_name && email && password) {
-      Account.createAccount(first_name, last_name, email, password)
+      Account.createAccount(first_name, last_name, email, password, false)
         .then(() => {
-          Constants.Navigation.startMainApp();
+          Alert.alert(
+            'New account',
+            `'${email}' was created successfully`,
+            [
+              {text: 'Great!', onPress: () => navigator.dismissModal()},
+            ],
+            { cancelable: false }
+          )
+
         }, (error) => {
           alert(error.message);
         })
@@ -58,9 +84,13 @@ export default class SignupScreen extends Component {
     }
   }
 
+  changePasswordPressed = () => {
+    alert('handle changePasswordPressed');
+  }
+
   render() {
-    const { Account, navigator } = this.props;
-    const { email, password } = this.state;
+    const { Account, navigator, mode } = this.props;
+    // const { email, password } = this.state;
 
     return (
       <KeyboardAvoidingView
@@ -88,17 +118,25 @@ export default class SignupScreen extends Component {
             placeholder={`Email`}
           />
 
-          <Components.DaTextInput
-            onChangeText={ (password) => this.setState({ password }) }
-            value={ this.state.password }
-            placeholder={`Password`}
-            secureTextEntry
-          />
+          { mode === 'edit' ? (
+            <Button
+              style={{ margin: 5 }}
+              title={`Change password`}
+              onPress={this.changePasswordPressed}
+            />
+          ) : (
+            <Components.DaTextInput
+              onChangeText={ (password) => this.setState({ password }) }
+              value={ this.state.password }
+              placeholder={`Password`}
+              secureTextEntry
+            />
+          ) }
 
           <Button
-            title={`Sign up`}
             style={{ margin: 5 }}
-            onPress={this.signUp}
+            title={mode === 'edit' ? `Save changes` : `Create`}
+            onPress={this.handleCreateEditAction}
           />
 
         </View>

@@ -80,6 +80,7 @@ export default class LoginScreen extends Component {
           />
 
           <Button
+            style={{ margin: 5 }}
             title={`Log in`}
             onPress={this.login}
           />
