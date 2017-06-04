@@ -8,6 +8,8 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  ScrollView,
+  Image,
   KeyboardAvoidingView,
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
@@ -111,64 +113,78 @@ export default class CreateEditAccountScreen extends Component {
 
   render() {
     const { Account, navigator, mode } = this.props;
-    // const { email, password } = this.state;
 
     return (
-      <KeyboardAvoidingView
-        behavior={'padding'}
-        style={styles.container}
-      >
+      <ScrollView contentContainerStyle={styles.container}>
+        <KeyboardAvoidingView
+          behavior={'padding'}
+          style={styles.container}
+        >
 
-        <View style={styles.form}>
-
-          <Components.DaTextInput
-            onChangeText={ (first_name) => this.setState({ first_name }) }
-            value={ this.state.first_name }
-            placeholder={`First name`}
-          />
-
-          <Components.DaTextInput
-            onChangeText={ (last_name) => this.setState({ last_name }) }
-            value={ this.state.last_name }
-            placeholder={`Last name`}
-          />
-
-          <Components.DaTextInput
-            onChangeText={ (bio) => this.setState({ bio }) }
-            value={ this.state.bio }
-            placeholder={`Bio`}
-          />
-
-          <Components.DaTextInput
-            onChangeText={ (email) => this.setState({ email }) }
-            value={ this.state.email }
-            placeholder={`Email`}
-          />
-
-          { mode === 'edit' ? (
+          <View style={styles.imageWrapper}>
+            <Image
+              style={styles.image}
+              source={{ uri: (mode === 'edit' ? (Account.current.avatar || 'https://facebook.github.io/react/img/logo_og.png') : 'https://facebook.github.io/react/img/logo_og.png') }}
+            />
             <Button
               style={{ margin: 5 }}
-              title={`Change password`}
-              onPress={this.changePasswordPressed}
+              onPress={() => alert('Upload new avatar')}
+              title={'Upload new avatar (move to edit page)'}
             />
-          ) : (
+          </View>
+
+          <View style={styles.form}>
+
             <Components.DaTextInput
-              onChangeText={ (password) => this.setState({ password }) }
-              value={ this.state.password }
-              placeholder={`Password`}
-              secureTextEntry
+              onChangeText={ (first_name) => this.setState({ first_name }) }
+              value={ this.state.first_name }
+              placeholder={`First name`}
             />
-          ) }
 
-          <Button
-            style={{ margin: 5 }}
-            title={mode === 'edit' ? `Save changes` : `Create`}
-            onPress={this.handleCreateEditAction}
-          />
+            <Components.DaTextInput
+              onChangeText={ (last_name) => this.setState({ last_name }) }
+              value={ this.state.last_name }
+              placeholder={`Last name`}
+            />
 
-        </View>
+            <Components.DaTextInput
+              onChangeText={ (bio) => this.setState({ bio }) }
+              value={ this.state.bio }
+              placeholder={`Bio`}
+              multiline
+            />
 
-      </KeyboardAvoidingView>
+            <Components.DaTextInput
+              onChangeText={ (email) => this.setState({ email }) }
+              value={ this.state.email }
+              placeholder={`Email`}
+            />
+
+            { mode === 'edit' ? (
+              <Button
+                style={{ margin: 5 }}
+                title={`Change password`}
+                onPress={this.changePasswordPressed}
+              />
+            ) : (
+              <Components.DaTextInput
+                onChangeText={ (password) => this.setState({ password }) }
+                value={ this.state.password }
+                placeholder={`Password`}
+                secureTextEntry
+              />
+            ) }
+
+            <Button
+              style={{ margin: 5 }}
+              title={mode === 'edit' ? `Save changes` : `Create`}
+              onPress={this.handleCreateEditAction}
+            />
+
+          </View>
+
+        </KeyboardAvoidingView>
+      </ScrollView>
     );
   }
 }
@@ -183,9 +199,9 @@ const styles = StyleSheet.create({
   form: {
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   text_input: {
-    width: 250,
     height: 40,
     padding: 10,
     margin: 5,
@@ -193,5 +209,15 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: Constants.Colors.blackColor,
     borderRadius: 20,
-  }
+  },
+
+  imageWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
 });

@@ -101,14 +101,6 @@ export default class ProfileScreen extends Component {
               style={styles.image}
               source={{ uri: (avatar || 'https://facebook.github.io/react/img/logo_og.png') }}
             />
-            <TouchableOpacity
-              style={{ marginTop: 8 }}
-              onPress={() => alert('Upload new avatar')}
-            >
-              <Text>
-                Upload new avatar (move to edit page)
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <TableView>

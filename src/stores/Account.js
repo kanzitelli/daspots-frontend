@@ -78,7 +78,7 @@ class Store {
 
   updateAccountInfo = (id: number, first_name: string, last_name: string, bio: string, email: string) => {
     const userData = { first_name, last_name, bio, email };
-    return this.app.service('users').update(id, userData).then((newUser) => {
+    return this.app.service('users').patch(id, userData).then((newUser) => {
       this.current = newUser;
     });
   }
