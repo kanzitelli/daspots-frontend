@@ -20,6 +20,7 @@ class Store {
   @persist('object', Models.Account) @observable current = new Models.Account
   @persist @observable isAuthenticated = false;
   @observable isConnecting = false;
+  @observable isAuthenticating = false;
   @observable users = [];
 
   constructor() {
@@ -35,14 +36,6 @@ class Store {
 
     this.connect();
 
-    this.app.service('locations').on('created', createdLocation => {
-      // this.messages.unshift(this.formatMessage(createdMessage));
-    });
-
-    // this.app.service('messages').on('removed', removedMessage => {
-    //   this.deleteMessage(removedMessage);
-    // });
-
     if (this.app.get('accessToken')) {
       this.isAuthenticated = this.app.get('accessToken') !== null;
     }
@@ -53,19 +46,22 @@ class Store {
 
     this.app.io.on('connect', () => {
       this.isConnecting = false;
-
-      this.authenticate().then(() => {
-        console.log('authenticated after reconnection');
-      }).catch(error => {
-        console.log('error authenticating after reconnection', error);
-      });
     });
 
     this.app.io.on('disconnect', () => {
-      console.log('disconnected');
-
       this.isConnecting = true;
     });
+  }
+
+  subscribeToServices = () => {
+    console.log('subscribeToServices');
+    // this.app.service('locations').on('created', createdLocation => {
+    //   this.messages.unshift(this.formatMessage(createdMessage));
+    // });
+
+    // this.app.service('messages').on('removed', removedMessage => {
+    //   this.deleteMessage(removedMessage);
+    // });
   }
 
   createAccount = (first_name: string, last_name: string, email: string, password: string) => {
@@ -86,8 +82,8 @@ class Store {
     return this.authenticate(payload);
   }
 
-  authenticate = (options) => {
-    options = options ? options : undefined;
+  authenticate = (options: {} = undefined) => {
+    this.isAuthenticating = true;
 
     return this._authenticate(options).then(user => {
       console.log('authenticated successfully', user.id, user.email);
@@ -95,6 +91,7 @@ class Store {
       console.log("NEW USER ::: ", user);
       this.current = user;
       this.isAuthenticated = true;
+      this.isAuthenticating = false;
 
       return Promise.resolve(user);
     }).catch(error => {
@@ -117,11 +114,13 @@ class Store {
 
   logout = () => {
     return new Promise((resolve, reject) => {
-      this.app.logout();
-      this.current = {};
-      this.isAuthenticated = false;
+      this.app.logout()
+        .then(() => {
+          this.current = {};
+          this.isAuthenticated = false;
 
-      resolve();
+          resolve();
+        });
     });
   }
 
@@ -143,8 +142,24 @@ class Store {
         this.users = response.data;
       })
       .catch((error) => {
-        alert('loadUsers -> ', error);
+        alert('loadUsers error -> ', error);
       })
+  }
+
+  changeCurrentUserTo = (user: {email: string}, password: string) => {
+    return new Promise((resolve, reject) => {
+      const that = this;
+
+      //
+      that.logout().then(() => {
+        that.login(user.email, password).then(() => {
+            that.current = user;
+            this.isAuthenticated = true;
+
+            resolve();
+          })
+        });
+    });
   }
 
 }

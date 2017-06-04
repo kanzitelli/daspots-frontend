@@ -4,6 +4,7 @@ import android.app.Application;
 import android.support.annotation.Nullable;
 
 import com.facebook.react.ReactApplication;
+import im.shimo.react.prompt.RNPromptPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
@@ -24,7 +25,10 @@ public class MainApplication extends NavigationApplication {
   @Nullable
   @Override
   public List<ReactPackage> createAdditionalReactPackages() {
-      return null;
+    return Arrays.<ReactPackage>asList(
+  		new RNPromptPackage()
+    );
+      // return null;
   }
 
   @Override
