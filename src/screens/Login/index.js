@@ -70,6 +70,7 @@ export default class LoginScreen extends Component {
             onChangeText={ (email) => this.setState({ email }) }
             value={ this.state.email }
             placeholder={`Email`}
+            autoCapitalize={'none'}
           />
 
           <Components.DaTextInput

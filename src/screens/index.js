@@ -4,6 +4,7 @@ import { Navigation } from 'react-native-navigation';
 
 import Constants from '../global/Constants';
 
+import CameraRoll from './CameraRoll';
 import Main    from './Main';
 import Profile from './Profile';
 import Welcome from './Welcome';
@@ -16,6 +17,7 @@ export function registerScreens(store: {}, Provider: {}) {
   Navigation.registerComponent(Constants.Screens.MAIN_SCREEN.screen,    () => Main, store, Provider);
   Navigation.registerComponent(Constants.Screens.PROFILE_SCREEN.screen, () => Profile, store, Provider);
 
+  Navigation.registerComponent(Constants.Screens.CAMERA_ROLL_SCREEN.screen, () => CameraRoll, store, Provider);
   Navigation.registerComponent(Constants.Screens.CREATE_EDIT_ACCOUNT_SCREEN.screen, () => CreateEditAccount, store, Provider);
 
   Navigation.registerComponent(Constants.Screens.WELCOME_SCREEN.screen, () => Welcome, store, Provider);

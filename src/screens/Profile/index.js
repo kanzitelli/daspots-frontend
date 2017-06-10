@@ -93,13 +93,15 @@ export default class ProfileScreen extends Component {
     const { App, Account } = this.props;
     const { first_name, last_name, avatar, bio, email } = Account.current;
 
+    if (!avatar) return null;
+
     return (
       <View style={styles.wrapper}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.imageWrapper}>
             <Image
               style={styles.image}
-              source={{ uri: (avatar || 'https://facebook.github.io/react/img/logo_og.png') }}
+              source={{ uri: avatar.uri }}
             />
           </View>
 
@@ -146,7 +148,7 @@ export default class ProfileScreen extends Component {
                         title={`${user.first_name} ${user.last_name}`}
                         onPress={ () => this.onUserPressed(user) }
                         image={
-                          <Image style={{ borderRadius: 15 }} source={{ uri: (user.avatar || 'https://facebook.github.io/react/img/logo_og.png') }} />
+                          <Image style={{ borderRadius: 15 }} source={{ uri: user.avatar.uri }} />
                         }
                       />
                     )
@@ -180,3 +182,22 @@ const styles = StyleSheet.create({
     backgroundColor: Constants.Colors.backgroundColorWithTable,
   },
 });
+
+const CellVariant = (props) => (
+  <Cell
+    {...props}
+    cellContentView={
+      <View
+        style={{ alignItems: 'center', flexDirection: 'row', flex: 1, paddingVertical: 10 }}
+      >
+        <Text
+          allowFontScaling
+          numberOfLines={5}
+          style={{ flex: 1, fontSize: 20 }}
+        >
+          {props.title}
+        </Text>
+      </View>
+    }
+  />
+);

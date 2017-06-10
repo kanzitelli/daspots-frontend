@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
 
+import Config     from '../../../config';
+import Models     from '../../stores/models';
 import NavButtons from '../../global/NavButtons';
 import NavBar     from '../../global/NavBar';
 import Constants  from '../../global/Constants';
@@ -49,7 +51,10 @@ export default class SignupScreen extends Component {
 
     // simple condition for now
     if (first_name && last_name && email && password) {
-      Account.createAccount(first_name, last_name, bio, email, password)
+      // const avatar = new Models.Avatar;
+      const avatar = { uri: Config.PLACEHOLDER_URI };
+
+      Account.createAccount({ first_name, last_name, avatar, bio, email, password })
         .then(() => {
           Constants.Navigation.startMainApp();
         }, (error) => {
@@ -94,6 +99,7 @@ export default class SignupScreen extends Component {
             onChangeText={ (email) => this.setState({ email }) }
             value={ this.state.email }
             placeholder={`Email`}
+            autoCapitalize={'none'}
           />
 
           <Components.DaTextInput

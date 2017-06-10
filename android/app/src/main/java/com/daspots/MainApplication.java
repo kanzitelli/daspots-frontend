@@ -4,6 +4,7 @@ import android.app.Application;
 import android.support.annotation.Nullable;
 
 import com.facebook.react.ReactApplication;
+import com.RNFetchBlob.RNFetchBlobPackage;
 import im.shimo.react.prompt.RNPromptPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;

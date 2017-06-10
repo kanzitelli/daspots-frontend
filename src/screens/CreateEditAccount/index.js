@@ -11,9 +11,13 @@ import {
   ScrollView,
   Image,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
+import RNFetchBlob from 'react-native-fetch-blob';
 
+import Config     from '../../../config';
+import Models     from '../../stores/models';
 import NavButtons from '../../global/NavButtons';
 import NavBar     from '../../global/NavBar';
 import Constants  from '../../global/Constants';
@@ -25,6 +29,9 @@ type State = {
   first_name : string,
   last_name  : string,
   bio        : string,
+
+  tmp_avatar : string,
+  converting : boolean,
 }
 
 type Props = {
@@ -48,7 +55,10 @@ export default class CreateEditAccountScreen extends Component {
       last_name  : mode === 'create' ? '' : Account.current.last_name,
       bio        : mode === 'create' ? '' : Account.current.bio,
       email      : mode === 'create' ? '' : Account.current.email,
-      password   : mode === 'create' ? '' : 'will_be_hidden ',
+      password   : mode === 'create' ? '' : 'will_be_hidden',
+
+      tmp_avatar : '',
+      converting : false,
     }
 
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
@@ -73,19 +83,42 @@ export default class CreateEditAccountScreen extends Component {
     if (first_name && last_name && email && password) {
 
       if (mode === 'create') {
-        Account.createAccount(first_name, last_name, email, password, false)
+        const avatar = { uri: Config.PLACEHOLDER_URI };
+
+        Account.createAccount({ first_name, last_name, avatar, bio, email, password }, false)
           .then(() => {
             this.closeModalWithSuccessfulAlert();
           }, (error) => {
             alert(error.message);
           })
       } else {
-        Account.updateAccountInfo(Account.current.id, first_name, last_name, bio, email, password, false)
-          .then(() => {
-            this.closeModalWithSuccessfulAlert();
-          }, (error) => {
-            alert(error.message);
-          })
+        if (this.state.tmp_avatar) {
+
+          Account.uploadAccountAvatarWith(this.state.tmp_avatar)
+            .then((_avatar) => {
+              // updatim только avatar.id !!!
+              const avatar = { ..._avatar, uri: `${Config.AMAZON_URI_LINK}/${_avatar.id}` }
+              const userData = { first_name, last_name, avatar, bio, email };
+
+              Account.updateAccountInfo(Account.current.id, userData, false)
+                .then(() => {
+                  this.closeModalWithSuccessfulAlert();
+                })
+                .catch(error => console.log(error.message))
+            })
+            .catch(error => { console.log(`ERRORS ::: ${error}`); alert('Could not upload. Please try later, or make sure that file is less than 10MB and you have stable internet connection :)'); })
+        } else {
+
+          const userData = { first_name, last_name, bio, email };
+
+          Account.updateAccountInfo(Account.current.id, userData, false)
+            .then(() => {
+              this.closeModalWithSuccessfulAlert();
+            })
+            .catch(error => console.log(error.message))
+
+        }
+
       }
 
     } else {
@@ -97,18 +130,46 @@ export default class CreateEditAccountScreen extends Component {
     const { Account, navigator, mode } = this.props;
     const { first_name, last_name, bio, email, password } = this.state;
 
-    Alert.alert(
-      mode === 'create' ? 'New account' : 'Edit account',
-      mode === 'create' ? `'${email}' was created successfully` : 'changes were successfully changed',
-      [
-        {text: 'Great!', onPress: () => navigator.dismissModal()},
-      ],
-      { cancelable: false }
-    );
+    navigator.dismissModal();
+    // Alert.alert(
+    //   mode === 'create' ? 'New account' : 'Edit account',
+    //   mode === 'create' ? `'${email}' was created successfully` : 'changes were successfully changed',
+    //   [
+    //     {text: 'Great!', onPress: () => navigator.dismissModal()},
+    //   ],
+    //   { cancelable: false }
+    // );
   }
 
   changePasswordPressed = () => {
     alert('handle changePasswordPressed');
+  }
+
+  uploadAvatarButtonPressed = () => {
+    const { navigator } = this.props;
+
+    navigator.push({
+      ...Constants.Screens.CAMERA_ROLL_SCREEN,
+      passProps: { onPhotoPressed: this.onAvatarPicked }
+    })
+  }
+
+  onAvatarPicked = (file) => {
+    if (!file.image.uri) { alert('avatar uri is invalid'); return; }
+
+    const { Account } = this.props;
+    this.setState({ converting: true });
+
+    RNFetchBlob.fs.readFile(file.image.uri, 'base64')
+        .then((base64data) => {
+          let base64Image = `data:image/jpeg;base64,${base64data}`;
+
+          // console.log(base64Image);
+          this.setState({ tmp_avatar: base64Image, converting: false });
+
+          // // this.props.addImagesToUntagged(data.path);
+        })
+    // Account.uploadAccountAvatarWith(file);
   }
 
   render() {
@@ -121,17 +182,23 @@ export default class CreateEditAccountScreen extends Component {
           style={styles.container}
         >
 
-          <View style={styles.imageWrapper}>
-            <Image
-              style={styles.image}
-              source={{ uri: (mode === 'edit' ? (Account.current.avatar || 'https://facebook.github.io/react/img/logo_og.png') : 'https://facebook.github.io/react/img/logo_og.png') }}
-            />
-            <Button
-              style={{ margin: 5 }}
-              onPress={() => alert('Upload new avatar')}
-              title={'Upload new avatar (move to edit page)'}
-            />
-          </View>
+          { mode === 'edit' ? (
+            <View style={styles.imageWrapper}>
+              <Image
+                style={styles.image}
+                source={{ uri: this.state.tmp_avatar || (mode === 'edit' ? Account.current.avatar.uri : 'https://facebook.github.io/react/img/logo_og.png') }}
+              />
+
+              { this.state.converting ? <ActivityIndicator animating={this.state.converting} /> :
+                <Button
+                  style={{ margin: 5, fontSize: 12 }}
+                  onPress={this.uploadAvatarButtonPressed}
+                  title={'Upload new avatar'}
+                />
+              }
+
+            </View>
+          ) : null }
 
           <View style={styles.form}>
 
@@ -158,6 +225,7 @@ export default class CreateEditAccountScreen extends Component {
               onChangeText={ (email) => this.setState({ email }) }
               value={ this.state.email }
               placeholder={`Email`}
+              autoCapitalize={'none'}
             />
 
             { mode === 'edit' ? (
@@ -175,11 +243,14 @@ export default class CreateEditAccountScreen extends Component {
               />
             ) }
 
-            <Button
-              style={{ margin: 5 }}
-              title={mode === 'edit' ? `Save changes` : `Create`}
-              onPress={this.handleCreateEditAction}
-            />
+            { Account.isUploadingAvatar ? <ActivityIndicator animating={Account.isUploadingAvatar} /> :
+              <Button
+                style={{ margin: 5 }}
+                title={mode === 'edit' ? `Save changes` : `Create`}
+                onPress={this.handleCreateEditAction}
+              />
+            }
+
 
           </View>
 
@@ -216,6 +287,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
+    justifyContent: 'center',
+    alignItems: 'center',
+
     width: 80,
     height: 80,
     borderRadius: 40,
