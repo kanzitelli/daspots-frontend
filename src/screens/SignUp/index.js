@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
 
+import Config     from '../../../config';
+import Models     from '../../stores/models';
 import NavButtons from '../../global/NavButtons';
 import NavBar     from '../../global/NavBar';
 import Constants  from '../../global/Constants';
@@ -21,10 +23,11 @@ type State = {
   password   : string,
   first_name : string,
   last_name  : string,
+  bio        : string,
 }
 
 @inject('App', 'Account') @observer
-export default class LoginScreen extends Component {
+export default class SignupScreen extends Component {
   // static navigatorButtons = NavButtons.Login;
   static navigatorStyle   = NavBar.Default;
 
@@ -36,6 +39,7 @@ export default class LoginScreen extends Component {
     this.state = {
       first_name : '',
       last_name  : '',
+      bio        : '',
       email      : '',
       password   : '',
     }
@@ -43,11 +47,14 @@ export default class LoginScreen extends Component {
 
   signUp = () => {
     const { Account } = this.props;
-    const { first_name, last_name, email, password } = this.state;
+    const { first_name, last_name, bio, email, password } = this.state;
 
     // simple condition for now
     if (first_name && last_name && email && password) {
-      Account.createAccount(first_name, last_name, email, password)
+      // const avatar = new Models.Avatar;
+      const avatar = { uri: Config.PLACEHOLDER_URI };
+
+      Account.createAccount({ first_name, last_name, avatar, bio, email, password })
         .then(() => {
           Constants.Navigation.startMainApp();
         }, (error) => {
@@ -83,9 +90,16 @@ export default class LoginScreen extends Component {
           />
 
           <Components.DaTextInput
+            onChangeText={ (bio) => this.setState({ bio }) }
+            value={ this.state.bio }
+            placeholder={`Bio`}
+          />
+
+          <Components.DaTextInput
             onChangeText={ (email) => this.setState({ email }) }
             value={ this.state.email }
             placeholder={`Email`}
+            autoCapitalize={'none'}
           />
 
           <Components.DaTextInput
@@ -97,6 +111,7 @@ export default class LoginScreen extends Component {
 
           <Button
             title={`Sign up`}
+            style={{ margin: 5 }}
             onPress={this.signUp}
           />
 

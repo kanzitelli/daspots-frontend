@@ -6,10 +6,9 @@ import {
   Text,
   View,
   Button,
+  ActivityIndicator,
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
-// import { ActionSheetCustom as ActionSheet } from 'react-native-actionsheet'
-import ActionSheet from 'react-native-actionsheet';
 
 import NavButtons  from '../../global/NavButtons';
 import NavBar      from '../../global/NavBar';
@@ -20,12 +19,18 @@ export default class MainScreen extends Component {
   static navigatorButtons = NavButtons.Main;
   static navigatorStyle   = NavBar.Default;
 
-  ActionSheet = null;
-
   constructor(props: {}) {
     super(props);
 
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent);
+  }
+
+  componentDidMount() {
+    const { Account } = this.props;
+
+    Account.authenticate()
+      .then (() => Account.subscribeToServices())
+      .catch(() => Constants.Navigation.startAuthApp())
   }
 
   onNavigatorEvent = (event: { id: string }) => {
@@ -37,69 +42,38 @@ export default class MainScreen extends Component {
     }
   }
 
-  componentDidMount() {
-    const { Account } = this.props;
-
-    if (!Account.isAuthenticated) Constants.Navigation.startAuthApp();
-  }
-
   profileButtonPressed = () => {
     const { navigator } = this.props;
 
     navigator.push({
       ...Constants.Screens.PROFILE_SCREEN,
     })
-    // this.ActionSheet.show()
   }
-
-  // handleActionPress = (i: number) => {
-  //   switch (i) {
-  //     case 0: // Cancel
-  //       break;
-  //     case 1: // + Add new user
-  //       alert('+ Add new user');
-  //       break;
-  //     case 2: // Change password
-  //       alert('Change Password');
-  //       break;
-  //     case 3: // Logout
-  //       this.logout();
-  //       break;
-  //     default:
-  //
-  //   }
-  // }
 
   render() {
     const { Account } = this.props;
+    let waitingText = 'Authenticating...';
 
-    // const CANCEL_INDEX      = 0
-    // const DESTRUCTIVE_INDEX = 3
-    // const options           = [ 'Cancel', '+ Add new user', 'Change password', 'Logout' ]
-    // const title             = `Logged in as '${Account.current.first_name} ${Account.current.last_name}'`;
+    if (Account.isConnecting) {
+      waitingText = 'Connecting...';
+    }
 
-    return (
+    return Account.isConnecting ? (
+      <View style={styles.container}>
+        <ActivityIndicator animating={true} size={'large'} color={Constants.Colors.tintColor} />
+        <Text style={{ textAlign: 'center', }}>{waitingText}</Text>
+      </View>
+    ) : (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Da Spots Main Screen
+          {`Hello, ${Account.current.first_name} ${Account.current.last_name} :)`}
         </Text>
 
         <View style={{ margin: 20 }}>
           <Text style={{ textAlign: 'center' }}>
-            This is the start page. It is a place where you can observe, search and add amazing places which you have been to 😋
+            This is Da Spots Main Screen. It is a place where you can observe, search and add amazing places which you have been to 😋
           </Text>
         </View>
-
-        {/*
-          <ActionSheet
-            ref={o => this.ActionSheet = o}
-            title={title}
-            options={options}
-            cancelButtonIndex={CANCEL_INDEX}
-            destructiveButtonIndex={DESTRUCTIVE_INDEX}
-            onPress={this.handleActionPress}
-          />
-        */}
       </View>
     );
   }

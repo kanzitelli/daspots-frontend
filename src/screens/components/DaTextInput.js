@@ -16,6 +16,8 @@ type Props = {
   value           : string,
   placeholder     : string,
   secureTextEntry : boolean,
+  multiline       : boolean,
+  autoCapitalize  : boolean,
 }
 
 export default class DaTextInput extends Component {
@@ -24,15 +26,18 @@ export default class DaTextInput extends Component {
   }
 
   render() {
-    const { onChangeText, value, placeholder, secureTextEntry } = this.props;
+    const { onChangeText, value, placeholder, secureTextEntry, multiline, autoCapitalize } = this.props;
 
     return (
       <TextInput
-        style={ styles.text_input }
+        style={ [styles.text_input, { height: multiline ? 60 : 40 }] }
         onChangeText={ onChangeText }
         value={ value }
         placeholder={ placeholder }
         secureTextEntry={ secureTextEntry }
+        multiline={multiline}
+        numberOfLines={multiline ? 3 : 1}
+        autoCapitalize={autoCapitalize}
       />
     );
   }

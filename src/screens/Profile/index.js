@@ -17,6 +17,7 @@ import {
   Section,
   TableView,
 } from 'react-native-tableview-simple';
+import prompt from 'react-native-prompt-android';
 import { inject, observer } from 'mobx-react/native';
 
 import NavButtons  from '../../global/NavButtons';
@@ -43,10 +44,24 @@ export default class ProfileScreen extends Component {
   onNavigatorEvent = (event: { id: string }) => {
     switch (event.id) {
       case 'edit':
-        alert('Edit button pressed');
+        this.openCreateEditAccountScreenWith('edit');
         break;
       default:
     }
+  }
+
+  openCreateEditAccountScreenWith = (mode: string) => {
+    const { navigator } = this.props;
+
+    navigator.showModal({
+      ...Constants.Screens.CREATE_EDIT_ACCOUNT_SCREEN,
+      title: `${mode} account`,
+      passProps: { mode },
+    })
+  }
+
+  addNewProfileButtonPressed = () => {
+    this.openCreateEditAccountScreenWith('create');
   }
 
   logout = () => {
@@ -55,9 +70,30 @@ export default class ProfileScreen extends Component {
     Account.logout().then(() => Constants.Navigation.startAuthApp())
   }
 
+  onUserPressed = (user: { email: string }) => {
+    const { navigator, Account } = this.props;
+
+    prompt(
+      `Enter password`,
+      `for account with email '${user.email}':`,
+      [
+        {text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel'},
+        {text: 'OK',     onPress: password => Account.changeCurrentUserTo(user, password).then(() => navigator.pop()) },
+      ],
+      {
+        type: 'secure-text',
+        cancelable: false,
+        defaultValue: '',
+        placeholder: 'Password'
+      }
+    );
+  }
+
   render() {
     const { App, Account } = this.props;
     const { first_name, last_name, avatar, bio, email } = Account.current;
+
+    if (!avatar) return null;
 
     return (
       <View style={styles.wrapper}>
@@ -65,16 +101,8 @@ export default class ProfileScreen extends Component {
           <View style={styles.imageWrapper}>
             <Image
               style={styles.image}
-              source={{ uri: (avatar || 'https://facebook.github.io/react/img/logo_og.png') }}
+              source={{ uri: avatar.uri }}
             />
-            <TouchableOpacity
-              style={{ marginTop: 8 }}
-              onPress={() => alert('Upload new avatar')}
-            >
-              <Text>
-                Upload new avatar (move to edit page)
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <TableView>
@@ -82,12 +110,17 @@ export default class ProfileScreen extends Component {
               <Cell
                 cellStyle="RightDetail"
                 title={`${first_name} ${last_name}`}
-                detail={'Full name'}
+                detail={'Name'}
               />
               <Cell
                 cellStyle="RightDetail"
                 title={`${email}`}
                 detail={"Email"}
+              />
+              <Cell
+                cellStyle="RightDetail"
+                title={`${bio || ''}`}
+                detail={"Bio"}
               />
               <Cell
                 cellStyle="Basic"
@@ -101,21 +134,21 @@ export default class ProfileScreen extends Component {
               <Cell
                 cellStyle="Basic"
                 title={'+ Add new account'}
-                onPress={() => alert('+ Add new profile')}
+                onPress={this.addNewProfileButtonPressed}
                 titleTextColor={Constants.Colors.tableButtonActionColor}
               />
               {
                 Account.users
                   .filter(user => user.id != Account.current.id)
-                  .map((user) => {
+                  .map(user => {
                     return (
                       <Cell
-                        key={`${user.id}-${user.email}`}
+                        key={`${user.id}`}
                         cellStyle="Basic"
                         title={`${user.first_name} ${user.last_name}`}
-                        onPress={() => alert('FUTURE FEATURE: Go to pressed account')}
+                        onPress={ () => this.onUserPressed(user) }
                         image={
-                          <Image style={{ borderRadius: 15 }} source={{ uri: (user.avatar || 'https://facebook.github.io/react/img/logo_og.png') }} />
+                          <Image style={{ borderRadius: 15 }} source={{ uri: user.avatar.uri }} />
                         }
                       />
                     )
@@ -149,3 +182,22 @@ const styles = StyleSheet.create({
     backgroundColor: Constants.Colors.backgroundColorWithTable,
   },
 });
+
+const CellVariant = (props) => (
+  <Cell
+    {...props}
+    cellContentView={
+      <View
+        style={{ alignItems: 'center', flexDirection: 'row', flex: 1, paddingVertical: 10 }}
+      >
+        <Text
+          allowFontScaling
+          numberOfLines={5}
+          style={{ flex: 1, fontSize: 20 }}
+        >
+          {props.title}
+        </Text>
+      </View>
+    }
+  />
+);

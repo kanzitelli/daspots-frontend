@@ -22,6 +22,7 @@ export default class WelcomeScreen extends Component {
       <View style={styles.container}>
         <Button
           title={`LOG IN`}
+          style={{ margin: 5 }}
           onPress={() => {
             this.props.navigator.push({
               ...Constants.Screens.LOGIN_SCREEN
@@ -31,6 +32,7 @@ export default class WelcomeScreen extends Component {
 
         <Button
           title={`SIGN UP`}
+          style={{ margin: 5 }}
           onPress={() => {
             this.props.navigator.push({
               ...Constants.Screens.SIGNUP_SCREEN
