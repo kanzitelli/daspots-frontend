@@ -1,6 +1,10 @@
 // @flow
 
-import { Alert, AsyncStorage, ImageStore, ImageEditor } from 'react-native';
+import {
+  Alert,
+  AsyncStorage,
+  PermissionsAndroid,
+} from 'react-native';
 import { observable, action, computed, runInAction } from 'mobx';
 import { persist } from 'mobx-persist';
 import { autobind } from 'core-decorators';
@@ -11,6 +15,7 @@ import socketio from 'feathers-socketio/client'
 import authentication from 'feathers-authentication-client';
 import RNFetchBlob from 'react-native-fetch-blob';
 
+import stores from '../stores';
 import Models from './models';
 import Config from '../../config';
 
@@ -41,6 +46,11 @@ class Store {
   @observable isAuthenticating = false;
   @observable isUploadingAvatar = false;
   @observable users = [];
+  @observable longitude = undefined; // долгота
+  @observable latitude  = undefined; // широта
+
+  // TODO: полный бред, надо будет переделать эту логику
+  app = {};
 
   constructor() {
     const options = { transports: ['websocket'], pingTimeout: 3000, pingInterval: 5000 };
@@ -75,10 +85,11 @@ class Store {
   }
 
   subscribeToServices = () => {
-    console.log('subscribeToServices');
-    // this.app.service('locations').on('created', createdLocation => {
-    //   this.messages.unshift(this.formatMessage(createdMessage));
-    // });
+    this.app.service('locations').on('created', createdLocation => {
+      runInAction('locations created on', () => {
+        stores.Locations.all.unshift(createdLocation);
+      })
+    });
 
     this.app.service('users').on('created', createdUser => {
       runInAction('users created on', () => {
@@ -87,6 +98,34 @@ class Store {
         this.users = newUsers;
       })
     });
+
+    // get current location
+    if (stores.App.isAndroid) {
+      const permission = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+
+      PermissionsAndroid.request(
+        permission,
+        {
+          title: 'for daspots search',
+          message: 'for better results',
+        }
+      ).then(granted => {
+        this.getCurrentLocation();
+      })
+    } else { this.getCurrentLocation(); }
+  }
+
+  getCurrentLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        runInAction('obtained current location', () => {
+          this.latitude  = position.coords.latitude;
+          this.longitude = position.coords.longitude;
+        })
+      },
+      (error) => { alert(error) },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+    );
   }
 
   // done: изменить на object
@@ -94,7 +133,6 @@ class Store {
     const userData = user;
 
     return this.app.service('users').create(userData).then((result) => {
-      console.log(result);
       if (withUserAuth) return this.authenticate(Object.assign(userData, { strategy: 'local' }))
     });
   }
@@ -117,56 +155,8 @@ class Store {
     return new Promise((resolve, reject) => {
 
       that.app.service('uploads').create({ uri })
-            .then((result) => { that.isUploadingAvatar = false; /* that.current.avatar = result; */ resolve(result); })
+            .then((result) => { that.isUploadingAvatar = false; resolve(result); })
             .catch(error => { that.isUploadingAvatar = false; reject(error); })
-
-      // RNFetchBlob.fs.readFile(file.image.uri, 'base64')
-      //     .then((base64data) => {
-      //       let base64Image = `data:image/jpeg;base64,${base64data}`;
-      //
-      //       console.log('base64Image !!! ', base64Image);
-      //       that.app.service('uploads').create({ uri: base64Image })
-      //             .then((result) => { alert('then'); that.current.avatar = result; resolve(); })
-      //             .catch((error) => { console.log(error); alert('uploadAccountAvatarWith error'); reject(); })
-      //       // this.props.addImagesToUntagged(data.path);
-      //     })
-
-      // const uri = getBase64DataURI(file.buffer, file.mimetype);
-      // const ext = extname(file.image.uri);
-      // const contentType = mimeTypes.lookup(ext);
-
-      // const that = this;
-      // NativeModules.RNAssetResizeToBase64.assetToResizedBase64(file.image.uri, 100, 100, (err, base64Data) => {
-      //
-      //   if (err) { alert('RNAssetResizeToBase64 error'); console.log(err); reject(); }
-      //
-      //   alert(base64Data);
-      //   that.app.service('uploads').create({ uri: base64Data })
-      //       .then((result) => { that.current.avatar = result.uri; resolve(); })
-      //       .catch((error) => { console.log(error); alert('uploadAccountAvatarWith error'); reject(); })
-      //
-      // });
-
-      // example of file.image.uri = assets-library://asset/asset.JPG?id=ED7AC36B-A150-4C38-BB8C-B6D696F4F2ED&ext=JPG
-      // ImageStore.getBase64ForTag(file.image.uri, (base64Data) => {
-      //
-      //   this.app.service('uploads').create({ uri: base64Data })
-      //     .then((result) => { this.current.avatar = result.uri; resolve(); })
-      //     .catch((error) => { console.log(error); alert('uploadAccountAvatarWith error'); reject(); })
-      //
-      // }, (error) => { console.log(error); alert('ImageStore.getBase64ForTag error'); reject(); });
-
-      // ImageStore.getBase64ForTag(
-      //   img_id,
-      //   (imgData) => {
-      //     this.app.service('uploads').create({ uri: imgData })
-      //       .then((result) => { this.current.avatar = result.uri; resolve(); })
-      //       .catch((error) => { console.log(error); alert('uploadAccountAvatarWith error'); reject(); })
-      //   }, (error) => {
-      //     console.log(error);
-      //     alert('Image.getBase64ForTag error');
-      //     reject();
-      //   });
 
     });
   }
@@ -249,7 +239,6 @@ class Store {
     return new Promise((resolve, reject) => {
       const that = this;
 
-      //
       that.logout().then(() => {
         that.login(user.email, password).then(() => {
             that.current = user;

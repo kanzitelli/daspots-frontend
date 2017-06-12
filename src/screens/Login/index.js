@@ -6,6 +6,7 @@ import {
   Text,
   Button,
   TextInput,
+  ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -59,12 +60,11 @@ export default class LoginScreen extends Component {
     const { email, password } = this.state;
 
     return (
-      <KeyboardAvoidingView
-        behavior={'padding'}
-        style={styles.container}
-      >
-
-        <View style={styles.form}>
+      <ScrollView>
+        <KeyboardAvoidingView
+          behavior={'padding'}
+          style={styles.container}
+        >
 
           <Components.DaTextInput
             onChangeText={ (email) => this.setState({ email }) }
@@ -86,9 +86,8 @@ export default class LoginScreen extends Component {
             onPress={this.login}
           />
 
-        </View>
-
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
     );
   }
 }
@@ -99,20 +98,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Constants.Colors.backgroundColor,
-  },
-  form: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text_input: {
-    width: 250,
-    height: 40,
     padding: 10,
-    margin: 5,
-
-    borderWidth: 0.5,
-    borderColor: Constants.Colors.blackColor,
-    borderRadius: 20,
-  }
+  },
 });

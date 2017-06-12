@@ -27,7 +27,8 @@ public class MainApplication extends NavigationApplication {
   @Override
   public List<ReactPackage> createAdditionalReactPackages() {
     return Arrays.<ReactPackage>asList(
-  		new RNPromptPackage()
+  		new RNPromptPackage(),
+      new RNFetchBlobPackage()
     );
       // return null;
   }
