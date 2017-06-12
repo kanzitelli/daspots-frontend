@@ -7,6 +7,7 @@ import {
   Button,
   TextInput,
   StyleSheet,
+  ScrollView,
   KeyboardAvoidingView,
 } from 'react-native';
 import { inject, observer } from 'mobx-react/native';
@@ -70,12 +71,11 @@ export default class SignupScreen extends Component {
     const { email, password } = this.state;
 
     return (
-      <KeyboardAvoidingView
-        behavior={'padding'}
-        style={styles.container}
-      >
-
-        <View style={styles.form}>
+      <ScrollView>
+        <KeyboardAvoidingView
+          behavior={'padding'}
+          style={styles.container}
+        >
 
           <Components.DaTextInput
             onChangeText={ (first_name) => this.setState({ first_name }) }
@@ -115,9 +115,8 @@ export default class SignupScreen extends Component {
             onPress={this.signUp}
           />
 
-        </View>
-
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
     );
   }
 }
@@ -128,19 +127,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Constants.Colors.backgroundColor,
-  },
-  form: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  text_input: {
-    width: 250,
-    height: 40,
     padding: 10,
-    margin: 5,
-
-    borderWidth: 0.5,
-    borderColor: Constants.Colors.blackColor,
-    borderRadius: 20,
-  }
+  },
 });

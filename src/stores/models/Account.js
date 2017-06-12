@@ -6,6 +6,7 @@ import { persist } from 'mobx-persist';
 import Avatar from './Avatar';
 
 class Account {
+  @persist @observable id         = 'id'
   @persist @observable first_name = 'first_name'
   @persist @observable last_name  = 'last_name'
   @persist @observable bio        = ''

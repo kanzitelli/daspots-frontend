@@ -164,19 +164,15 @@ export default class CreateEditAccountScreen extends Component {
         .then((base64data) => {
           let base64Image = `data:image/jpeg;base64,${base64data}`;
 
-          // console.log(base64Image);
           this.setState({ tmp_avatar: base64Image, converting: false });
-
-          // // this.props.addImagesToUntagged(data.path);
         })
-    // Account.uploadAccountAvatarWith(file);
   }
 
   render() {
     const { Account, navigator, mode } = this.props;
 
     return (
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView>
         <KeyboardAvoidingView
           behavior={'padding'}
           style={styles.container}
@@ -200,59 +196,54 @@ export default class CreateEditAccountScreen extends Component {
             </View>
           ) : null }
 
-          <View style={styles.form}>
+          <Components.DaTextInput
+            onChangeText={ (first_name) => this.setState({ first_name }) }
+            value={ this.state.first_name }
+            placeholder={`First name`}
+          />
 
-            <Components.DaTextInput
-              onChangeText={ (first_name) => this.setState({ first_name }) }
-              value={ this.state.first_name }
-              placeholder={`First name`}
+          <Components.DaTextInput
+            onChangeText={ (last_name) => this.setState({ last_name }) }
+            value={ this.state.last_name }
+            placeholder={`Last name`}
+          />
+
+          <Components.DaTextInput
+            onChangeText={ (bio) => this.setState({ bio }) }
+            value={ this.state.bio }
+            placeholder={`Bio`}
+            multiline
+          />
+
+          <Components.DaTextInput
+            onChangeText={ (email) => this.setState({ email }) }
+            value={ this.state.email }
+            placeholder={`Email`}
+            autoCapitalize={'none'}
+          />
+
+          { mode === 'edit' ? (
+            <Button
+              style={{ margin: 5 }}
+              title={`Change password`}
+              onPress={this.changePasswordPressed}
             />
-
+          ) : (
             <Components.DaTextInput
-              onChangeText={ (last_name) => this.setState({ last_name }) }
-              value={ this.state.last_name }
-              placeholder={`Last name`}
+              onChangeText={ (password) => this.setState({ password }) }
+              value={ this.state.password }
+              placeholder={`Password`}
+              secureTextEntry
             />
+          ) }
 
-            <Components.DaTextInput
-              onChangeText={ (bio) => this.setState({ bio }) }
-              value={ this.state.bio }
-              placeholder={`Bio`}
-              multiline
+          { Account.isUploadingAvatar ? <ActivityIndicator animating={Account.isUploadingAvatar} /> :
+            <Button
+              style={{ margin: 5 }}
+              title={mode === 'edit' ? `Save changes` : `Create`}
+              onPress={this.handleCreateEditAction}
             />
-
-            <Components.DaTextInput
-              onChangeText={ (email) => this.setState({ email }) }
-              value={ this.state.email }
-              placeholder={`Email`}
-              autoCapitalize={'none'}
-            />
-
-            { mode === 'edit' ? (
-              <Button
-                style={{ margin: 5 }}
-                title={`Change password`}
-                onPress={this.changePasswordPressed}
-              />
-            ) : (
-              <Components.DaTextInput
-                onChangeText={ (password) => this.setState({ password }) }
-                value={ this.state.password }
-                placeholder={`Password`}
-                secureTextEntry
-              />
-            ) }
-
-            { Account.isUploadingAvatar ? <ActivityIndicator animating={Account.isUploadingAvatar} /> :
-              <Button
-                style={{ margin: 5 }}
-                title={mode === 'edit' ? `Save changes` : `Create`}
-                onPress={this.handleCreateEditAction}
-              />
-            }
-
-
-          </View>
+          }
 
         </KeyboardAvoidingView>
       </ScrollView>
@@ -266,20 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Constants.Colors.backgroundColor,
-  },
-  form: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  text_input: {
-    height: 40,
     padding: 10,
-    margin: 5,
-
-    borderWidth: 0.5,
-    borderColor: Constants.Colors.blackColor,
-    borderRadius: 20,
   },
 
   imageWrapper: {

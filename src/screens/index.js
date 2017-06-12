@@ -12,15 +12,18 @@ import SignUp  from './SignUp';
 import Login   from './Login';
 
 import CreateEditAccount from './CreateEditAccount';
+import CreateLocation    from './CreateLocation';
 
 export function registerScreens(store: {}, Provider: {}) {
-  Navigation.registerComponent(Constants.Screens.MAIN_SCREEN.screen,    () => Main, store, Provider);
-  Navigation.registerComponent(Constants.Screens.PROFILE_SCREEN.screen, () => Profile, store, Provider);
-
-  Navigation.registerComponent(Constants.Screens.CAMERA_ROLL_SCREEN.screen, () => CameraRoll, store, Provider);
-  Navigation.registerComponent(Constants.Screens.CREATE_EDIT_ACCOUNT_SCREEN.screen, () => CreateEditAccount, store, Provider);
-
   Navigation.registerComponent(Constants.Screens.WELCOME_SCREEN.screen, () => Welcome, store, Provider);
   Navigation.registerComponent(Constants.Screens.SIGNUP_SCREEN.screen,  () => SignUp, store, Provider);
   Navigation.registerComponent(Constants.Screens.LOGIN_SCREEN.screen,   () => Login, store, Provider);
+
+  Navigation.registerComponent(Constants.Screens.MAIN_SCREEN.screen,     () => Main, store, Provider);
+  Navigation.registerComponent(Constants.Screens.CREATE_LOCATION.screen, () => CreateLocation, store, Provider);
+
+  Navigation.registerComponent(Constants.Screens.PROFILE_SCREEN.screen,             () => Profile, store, Provider);
+  Navigation.registerComponent(Constants.Screens.CREATE_EDIT_ACCOUNT_SCREEN.screen, () => CreateEditAccount, store, Provider);
+
+  Navigation.registerComponent(Constants.Screens.CAMERA_ROLL_SCREEN.screen, () => CameraRoll, store, Provider);
 }

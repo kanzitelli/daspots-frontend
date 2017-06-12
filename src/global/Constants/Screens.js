@@ -20,6 +20,11 @@ export default {
     screen : 'app.MainScreen',
     title  : 'Da Spots',
   },
+  CREATE_LOCATION: {
+    screen : 'app.CreateLocationScreen',
+    title  : 'Create location',
+  },
+
   PROFILE_SCREEN: {
     screen : 'app.ProfileScreen',
     title  : 'Profile',
