@@ -50,19 +50,27 @@ type SearchGoogleQ = {
 }
 
 class Store {
+  @observable to_show = [];
+
   @observable all = [];
   @observable isFetching = false;
   @observable isUploadingImage = false;
 
+  // for ReDB search
+  @observable searchResults = [];
+  @observable isSearching = false;
+
+  // for google search
   @observable googlePlacesForSearch = [];
   @observable isFetchingForSearch = false;
 
   // TODO: полный бред, надо будет переделать эту логику -> stores.Account.app
-  
+
   getAll = () => {
     return stores.Account.app.service('locations').find({ query: { $sort: { createdAt: -1 } } })
             .then(response => {
               this.all = response.data;
+              this.to_show = this.all;
 
               return response.data;
             });
@@ -83,6 +91,26 @@ class Store {
             .catch(error => { that.isUploadingImage = false; reject(error); })
 
     });
+  }
+
+  searchInReDB = (query: string) => {
+    if (query === '') { this.to_show = this.all; return; }
+
+    this.isSearching = true;
+
+    return stores.Account.app.service('locations').find({
+      query: {
+        name: {
+          $search: query
+        }
+      }
+    }).then(results => {
+      this.isSearching = false;
+      console.log(results);
+
+      this.to_show = results.data;
+      return results;
+    })
   }
 
   searchGooglePlace = (placeid: string) => {
@@ -115,7 +143,7 @@ class Store {
 
     if (stores.Account.latitude && stores.Account.longitude) {
       q['query']['search']['location'] = `${stores.Account.latitude},${stores.Account.longitude}`;
-      q['query']['search']['radius'] = 10000;
+      q['query']['search']['radius'] = 1000;
     }
 
     this.isFetchingForSearch = true;
@@ -130,10 +158,10 @@ class Store {
       .catch(error => alert(alert))
   }
 
-  searchGooglePlacesAutoComplete = (query_text: string) => {
+  searchGooglePlacesQueryAutoComplete = (query_text: string) => {
     const q: SearchGoogleQ = {
       query : {
-        type   : 'placesAutoComplete',
+        type   : 'placesQueryAutoComplete',
         search : {
           input: query_text
         }
@@ -142,14 +170,14 @@ class Store {
 
     if (stores.Account.latitude && stores.Account.longitude) {
       q['query']['search']['location'] = `${stores.Account.latitude},${stores.Account.longitude}`;
-      // q['query']['search']['radius'] = 10000;
+      q['query']['search']['radius'] = 5000;
     }
 
     this.isFetchingForSearch = true;
     stores.Account.app.service('google-places').find(q)
       .then(results => {
         runInAction('got some google results', () => {
-          console.log(results);
+          console.log('searchGooglePlacesQueryAutoComplete ::: ', results);
           this.googlePlacesForSearch = results || [];
           this.isFetchingForSearch = false;
         })

@@ -91,23 +91,36 @@ export default class CreateLocation extends Component {
 
   onResultLocationPressed = (place) => {
     const { Account, Locations, navigator } = this.props;
-    const { place_id, description } = place;
+    const { name, formatted_address, geometry, types, place_id } = place;
 
-    Locations.searchGooglePlace(place_id)
-      .then(result => {
-        this.setState({
-          query     : description,
-          name      : result.name,
-          address   : result.formatted_address,
-          longitude : result.geometry.location.lng,
-          latitude  : result.geometry.location.lat,
-          keywords  : result.types,
-          place_id  : result.place_id,
-        });
+    this.setState({
+      query     : `${name}, ${formatted_address}`,
+      address   : formatted_address,
+      longitude : geometry.location.lng,
+      latitude  : geometry.location.lat,
+      keywords  : types,
+      name,
+      place_id,
+    });
 
-        Locations.googlePlacesForSearch = [];
-      })
-      .catch(err => alert(err))
+    Locations.googlePlacesForSearch = [];
+
+    // Locations.searchGooglePlace(place_id)
+    //   .then(result => {
+    //     this.setState({
+    //       query     : description,
+    //       name      : result.name,
+    //       address   : result.formatted_address,
+    //       longitude : result.geometry.location.lng,
+    //       latitude  : result.geometry.location.lat,
+    //       keywords  : result.types,
+    //       place_id  : result.place_id,
+    //       vicinity  :
+    //     });
+    //
+    //     Locations.googlePlacesForSearch = [];
+    //   })
+    //   .catch(err => alert(err))
   }
 
   uploadImageButtonPressed = () => {
@@ -147,7 +160,7 @@ export default class CreateLocation extends Component {
           <Components.DaTextInput
             onChangeText={ query => this.setState({ query })}
             returnKeyType={'search'}
-            onSubmitEditing={() => { if(query.length > 2) Locations.searchGooglePlacesAutoComplete(query); }}
+            onSubmitEditing={() => { Locations.searchGooglePlaces(query); }}
             value={ query }
             placeholder={`Location`}
           />
@@ -163,7 +176,8 @@ export default class CreateLocation extends Component {
                         style={styles.search_result}
                         onPress={() => this.onResultLocationPressed(place)}
                       >
-                        <Text style={{fontSize: 14, textAlign: 'center'}}>{ place.description }</Text>
+                        <Text style={{fontSize: 14, textAlign: 'center'}}>{ place.name }</Text>
+                        <Text style={{fontSize: 14, textAlign: 'center'}}>{ place.formatted_address }</Text>
                       </TouchableOpacity>
                     )
                 })
