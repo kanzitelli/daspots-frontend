@@ -8,6 +8,9 @@ import {
   Button,
   ActivityIndicator,
   FlatList,
+  Linking,
+  Image,
+  TouchableOpacity,
 } from 'react-native';
 import { toJS } from 'mobx';
 import { inject, observer } from 'mobx-react/native';
@@ -63,6 +66,13 @@ export default class MainScreen extends Component {
     })
   }
 
+  onSearchTextChanged = (query: string) => {
+    const { Locations } = this.props;
+    this.setState({ query });
+
+    Locations.searchInReDB(query);
+  }
+
   render() {
     const { Account, Locations } = this.props;
     let waitingText = 'Authenticating...';
@@ -78,7 +88,7 @@ export default class MainScreen extends Component {
       </View>
     ) : (
       <FlatList
-        data={toJS(Locations.all)}
+        data={toJS(Locations.to_show)}
         renderItem={this.renderLocationCell}
         keyExtractor={this._keyExtractor}
         ListHeaderComponent={this.renderHeader}
@@ -90,7 +100,7 @@ export default class MainScreen extends Component {
     return (
       <View style={styles.listHeader}>
         <Components.DaTextInput
-          onChangeText={ (query) => this.setState({ query }) }
+          onChangeText={ this.onSearchTextChanged }
           value={ this.state.query }
           placeholder={`Search`}
         />
@@ -102,18 +112,53 @@ export default class MainScreen extends Component {
     )
   }
 
+  renderFooter = () => {
+    const { Locations } = this.props;
+
+    return (
+      <View style={styles.listFooter}>
+        <Text>
+          123
+        </Text>
+      </View>
+    )
+  }
+
   _keyExtractor = (item, index) => item.id;
 
   renderLocationCell = ({item}) => {
     return (
       <View style={styles.locationCell}>
-        <Text style={{ textAlign: 'center' }}>Name :: { item.name }</Text>
-        <Text style={{ textAlign: 'center' }}>Address :: { item.address }</Text>
-        <Text style={{ textAlign: 'center' }}>Keywords :: { item.keywords.join(', ') }</Text>
-        <Text style={{ textAlign: 'center' }}>Quote :: { item.quote }</Text>
-        <Text style={{ textAlign: 'center' }}>User_id :: { item.user_id }</Text>
+        <TouchableOpacity
+          onPress={() => alert('open profile')}
+        >
+          <Image
+            style={styles.image}
+            source={{ uri: item.user.avatar.uri }}
+          />
+        </TouchableOpacity>
+
+        <View style={{ flex: 1, marginLeft: 8, }}>
+          <Text style={styles.text}>Name: { item.name }</Text>
+          <Text style={styles.text}>Address: { item.address }</Text>
+          <Text style={styles.text}>Quote: "{ item.quote }"</Text>
+          <Text style={styles.text}>Added by: { `${item.user.first_name} ${item.user.last_name}` }</Text>
+
+          <TouchableOpacity
+            style={{ flex: 1, margin: 4, }}
+            onPress={() => this.openDirections(item.latitude, item.longitude)}
+          >
+            <Text style={styles.getDirections}>
+              Get directions
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     )
+  }
+
+  openDirections = (latitude: number, longitude: number) => {
+    Linking.openURL(`http://maps.google.com/maps?daddr=${latitude},${longitude}`);
   }
 
   onAddButtonPressed = () => {
@@ -140,9 +185,21 @@ const styles = StyleSheet.create({
 
   locationCell: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    flexDirection: 'row',
+    padding: 8,
+  },
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  text: {
+    fontSize: 14,
+    margin: 4,
+  },
+  getDirections: {
+    fontSize: 20, color:
+    Constants.Colors.tintColor
   },
 
   listHeader: {
@@ -152,5 +209,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     paddingVertical: 30,
+  },
+  listFooter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
 });
